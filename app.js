@@ -19,10 +19,11 @@ const REAFFECTATION_STATES = [
   "Réaffectation refusée par la DSDEN",
 ];
 
-const STORAGE_KEY = "perdir_immersions_v1";
+const STORAGE_KEY = "perdir_immersions_v2";
 
 const state = {
   immersions: [],
+  journal: [],
 };
 
 const byId = (id) => document.getElementById(id);
@@ -33,6 +34,21 @@ const escapeHtml = (value) =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
+
+function showToast(message) {
+  const container = byId("toastContainer");
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add("visible");
+  }, 10);
+  setTimeout(() => {
+    toast.classList.remove("visible");
+    setTimeout(() => toast.remove(), 300);
+  }, 2600);
+}
 
 function initTabs() {
   const tabs = document.querySelectorAll(".tab");
@@ -64,20 +80,43 @@ function getPeriod(immersion) {
   return "En cours";
 }
 
+function trackEvent(type, payload) {
+  state.journal.unshift({
+    id: crypto.randomUUID(),
+    type,
+    payload,
+    timestamp: new Date().toISOString(),
+  });
+}
+
 function saveLocal() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.immersions));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
 function loadLocal() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
-      state.immersions = parsed;
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed?.immersions)) {
+        state.immersions = parsed.immersions;
+        state.journal = Array.isArray(parsed.journal) ? parsed.journal : [];
+        return;
+      }
+    }
+
+    // Compatibilité avec l'ancien format (tableau simple)
+    const legacyRaw = localStorage.getItem("perdir_immersions_v1");
+    if (!legacyRaw) return;
+    const legacy = JSON.parse(legacyRaw);
+    if (Array.isArray(legacy)) {
+      state.immersions = legacy;
+      state.journal = [];
+      saveLocal();
     }
   } catch {
     state.immersions = [];
+    state.journal = [];
   }
 }
 
@@ -108,8 +147,10 @@ function createImmersion() {
   }
 
   state.immersions.unshift(payload);
+  trackEvent("immersion_created", { id: payload.id });
   saveLocal();
   renderAll();
+  showToast(`Immersion créée pour ${payload.prenom} ${payload.nom}.`);
 
   document.querySelectorAll("#studentForm input, #immersionForm input").forEach((input) => {
     input.value = "";
@@ -117,26 +158,33 @@ function createImmersion() {
 }
 
 function deleteImmersion(id) {
-  if (!confirm("Supprimer cette immersion ?")) return;
+  const target = state.immersions.find((i) => i.id === id);
+  if (!target || !confirm("Supprimer cette immersion ?")) return;
   state.immersions = state.immersions.filter((i) => i.id !== id);
+  trackEvent("immersion_deleted", { id });
   saveLocal();
   renderAll();
+  showToast(`Immersion supprimée pour ${target.prenom} ${target.nom}.`);
 }
 
 function updateImmersionState(id, value) {
   const item = state.immersions.find((i) => i.id === id);
-  if (!item) return;
+  if (!item || item.immersionState === value) return;
   item.immersionState = value;
+  trackEvent("immersion_state_updated", { id, value });
   saveLocal();
   renderAll();
+  showToast(`Statut immersion mis à jour : ${value}`);
 }
 
 function updateReaffectationState(id, value) {
   const item = state.immersions.find((i) => i.id === id);
-  if (!item) return;
+  if (!item || item.reaffectationState === value) return;
   item.reaffectationState = value;
+  trackEvent("reaffectation_state_updated", { id, value });
   saveLocal();
   renderAll();
+  showToast(`Statut réaffectation mis à jour : ${value}`);
 }
 
 function renderImmersionsTab() {
@@ -220,110 +268,90 @@ function renderReaffectationTab() {
     : '<p class="empty">Aucune immersion passée à afficher.</p>';
 }
 
-function renderStatsTable() {
-  const total = state.immersions.length;
-  const futures = state.immersions.filter((i) => getPeriod(i) === "Future").length;
-  const enCours = state.immersions.filter((i) => getPeriod(i) === "En cours").length;
-  const passees = state.immersions.filter((i) => getPeriod(i) === "Passée").length;
-  const reaffectationDemandee = state.immersions.filter(
-    (i) => i.reaffectationState !== REAFFECTATION_STATES[0]
-  ).length;
-  const reaffectationsTraitees = state.immersions.filter((i) =>
-    ["Réaffectation acceptée par la DSDEN", "Réaffectation refusée par la DSDEN"].includes(
-      i.reaffectationState
+function renderKpis() {
+  const cards = [
+    {
+      label: "Immersions totales",
+      value: state.immersions.length,
+    },
+    {
+      label: "Immersions demandées",
+      value: state.immersions.filter((i) => i.immersionState === IMMERSION_STATES[0]).length,
+    },
+    {
+      label: "Avis positifs immersion",
+      value: state.immersions.filter((i) => i.immersionState === IMMERSION_STATES[4]).length,
+    },
+    {
+      label: "Avis négatifs immersion",
+      value: state.immersions.filter((i) => i.immersionState === IMMERSION_STATES[5]).length,
+    },
+    {
+      label: "Réaffectations demandées",
+      value: state.immersions.filter((i) => i.reaffectationState !== REAFFECTATION_STATES[0]).length,
+    },
+    {
+      label: "Réaffectations acceptées",
+      value: state.immersions.filter((i) => i.reaffectationState === REAFFECTATION_STATES[5]).length,
+    },
+  ];
+
+  byId("kpiCards").innerHTML = cards
+    .map(
+      (card) => `
+      <article class="kpi-card">
+        <p>${escapeHtml(card.label)}</p>
+        <strong>${card.value}</strong>
+      </article>
+    `
     )
-  ).length;
+    .join("");
+}
+
+function renderStatsTable() {
+  const origins = [...new Set(state.immersions.map((i) => i.origineEtablissement))].sort((a, b) =>
+    a.localeCompare(b)
+  );
+  const targets = [...new Set(state.immersions.map((i) => i.accueilEtablissement))].sort((a, b) =>
+    a.localeCompare(b)
+  );
+
+  if (!origins.length || !targets.length) {
+    byId("statsTableContainer").innerHTML = '<p class="empty">Aucune donnée à afficher.</p>';
+    return;
+  }
+
+  const matrix = new Map();
+  state.immersions.forEach((item) => {
+    const key = `${item.origineEtablissement}::${item.accueilEtablissement}`;
+    matrix.set(key, (matrix.get(key) || 0) + 1);
+  });
+
+  const header = targets.map((target) => `<th>${escapeHtml(target)}</th>`).join("");
+  const rows = origins
+    .map((origin) => {
+      const cols = targets
+        .map((target) => `<td>${matrix.get(`${origin}::${target}`) || 0}</td>`)
+        .join("");
+      return `<tr><th>${escapeHtml(origin)}</th>${cols}</tr>`;
+    })
+    .join("");
 
   byId("statsTableContainer").innerHTML = `
     <table>
       <thead>
-        <tr><th>Indicateur</th><th>Valeur</th></tr>
+        <tr>
+          <th>Origine \ Accueil</th>
+          ${header}
+        </tr>
       </thead>
-      <tbody>
-        <tr><td>Total immersions</td><td>${total}</td></tr>
-        <tr><td>Immersions futures</td><td>${futures}</td></tr>
-        <tr><td>Immersions en cours</td><td>${enCours}</td></tr>
-        <tr><td>Immersions passées</td><td>${passees}</td></tr>
-        <tr><td>Réaffectations demandées</td><td>${reaffectationDemandee}</td></tr>
-        <tr><td>Réaffectations traitées</td><td>${reaffectationsTraitees}</td></tr>
-      </tbody>
+      <tbody>${rows}</tbody>
     </table>
   `;
 }
 
-function renderFlowCanvas() {
-  const canvas = byId("flowCanvas");
-  const ctx = canvas.getContext("2d");
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  const nodes = new Map();
-  const links = new Map();
-
-  state.immersions.forEach((i) => {
-    nodes.set(i.origineEtablissement, { type: "origin" });
-    nodes.set(i.accueilEtablissement, { type: "target" });
-    const key = `${i.origineEtablissement}→${i.accueilEtablissement}`;
-    links.set(key, (links.get(key) || 0) + 1);
-  });
-
-  const origins = [...new Set(state.immersions.map((i) => i.origineEtablissement))];
-  const targets = [...new Set(state.immersions.map((i) => i.accueilEtablissement))];
-
-  const leftX = 120;
-  const rightX = canvas.width - 120;
-
-  const originPos = new Map();
-  const targetPos = new Map();
-
-  origins.forEach((name, idx) => {
-    originPos.set(name, {
-      x: leftX,
-      y: ((idx + 1) * canvas.height) / (origins.length + 1),
-    });
-  });
-
-  targets.forEach((name, idx) => {
-    targetPos.set(name, {
-      x: rightX,
-      y: ((idx + 1) * canvas.height) / (targets.length + 1),
-    });
-  });
-
-  links.forEach((count, key) => {
-    const [from, to] = key.split("→");
-    const p1 = originPos.get(from);
-    const p2 = targetPos.get(to);
-    if (!p1 || !p2) return;
-    ctx.beginPath();
-    ctx.moveTo(p1.x, p1.y);
-    ctx.bezierCurveTo((p1.x + p2.x) / 2, p1.y, (p1.x + p2.x) / 2, p2.y, p2.x, p2.y);
-    ctx.strokeStyle = "rgba(230, 31, 82, 0.75)";
-    ctx.lineWidth = 1 + count;
-    ctx.stroke();
-  });
-
-  const drawNode = (name, pos, color) => {
-    ctx.beginPath();
-    ctx.arc(pos.x, pos.y, 10, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.font = "12px sans-serif";
-    ctx.fillStyle = "#fff";
-    ctx.fillText(name, pos.x + 15, pos.y + 4);
-  };
-
-  originPos.forEach((pos, name) => drawNode(name, pos, "#420e1b"));
-  targetPos.forEach((pos, name) => drawNode(name, pos, "#e61f52"));
-
-  if (!state.immersions.length) {
-    ctx.font = "14px sans-serif";
-    ctx.fillStyle = "rgba(255,255,255,0.8)";
-    ctx.fillText("Aucune donnée pour le diagramme.", 20, 30);
-  }
-}
-
 function renderDashboard() {
-  renderFlowCanvas();
+  renderKpis();
   renderStatsTable();
 }
 
@@ -351,7 +379,12 @@ function renderAll() {
 }
 
 function exportJson() {
-  const blob = new Blob([JSON.stringify(state.immersions, null, 2)], { type: "application/json" });
+  const payload = {
+    generatedAt: new Date().toISOString(),
+    immersions: state.immersions,
+    journal: state.journal,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -366,11 +399,18 @@ function importJson(file) {
   reader.onload = () => {
     try {
       const parsed = JSON.parse(String(reader.result));
-      if (!Array.isArray(parsed)) throw new Error("Format invalide");
-      state.immersions = parsed;
+      if (Array.isArray(parsed)) {
+        state.immersions = parsed;
+        state.journal = [];
+      } else if (Array.isArray(parsed?.immersions)) {
+        state.immersions = parsed.immersions;
+        state.journal = Array.isArray(parsed.journal) ? parsed.journal : [];
+      } else {
+        throw new Error("Format invalide");
+      }
       saveLocal();
       renderAll();
-      alert("Import JSON réalisé.");
+      showToast("Import JSON réalisé.");
     } catch {
       alert("Fichier JSON invalide.");
     }

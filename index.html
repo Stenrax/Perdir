@@ -121,18 +121,18 @@
       </section>
 
       <section id="dashboard" class="tab-panel">
-        <div class="grid-2">
-          <article class="glass card">
-            <h2>Diagramme de flux</h2>
-            <canvas id="flowCanvas" width="640" height="360" aria-label="Flux entre établissements"></canvas>
-          </article>
-          <article class="glass card">
-            <h2>Statistiques</h2>
-            <div id="statsTableContainer"></div>
-          </article>
-        </div>
+        <article class="glass card">
+          <h2>Indicateurs clés</h2>
+          <div id="kpiCards" class="kpi-grid"></div>
+        </article>
+        <article class="glass card">
+          <h2>Matrice des immersions (origine → accueil)</h2>
+          <div id="statsTableContainer"></div>
+        </article>
       </section>
     </main>
+
+    <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
     <script src="app.js"></script>
   </body>
