@@ -10,3 +10,9 @@ Cette application web (HTML/CSS/JS) entièrement Vibecodé par ChatGPT (Codex) p
 # À venir :
 - L'application propose des export des demandes d'immersion en PDF pour recueillir l'accord des responsables légaux
 - L'application propose des export des demandes de réaffectation en PDF pour recueillir l'accord des responsables légaux
+
+# Pour commencer :
+- Appuyer sur le bouton vert "<> code"
+- Dans le menu déroulant, selectionnez "Download ZIP"
+- Dans votre dossier téléchargement, trouver perdir-main.zip, faites clic-droit dessus et appuyez sur "Extraire tout"
+- Dans le dossier Perdir-main, double cliquez sur "index.html"
