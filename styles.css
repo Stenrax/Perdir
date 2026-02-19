@@ -1,0 +1,260 @@
+:root {
+  --primary: #420e1b;
+  --accent: #e61f52;
+  --surface: rgba(255, 255, 255, 0.14);
+  --surface-border: rgba(255, 255, 255, 0.3);
+  --text: #fff4f7;
+  --muted: #ffd6e2;
+  --danger: #ff4d6d;
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, "Segoe UI", Roboto, sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+  background: linear-gradient(130deg, #21070f, #420e1b 40%, #7f1234 75%, #e61f52);
+}
+
+.bg-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 15% 15%, rgba(255, 255, 255, 0.16), transparent 28%),
+    radial-gradient(circle at 82% 85%, rgba(255, 255, 255, 0.1), transparent 30%);
+}
+
+.app-shell {
+  position: relative;
+  z-index: 1;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1.2rem;
+}
+
+.glass {
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--shadow);
+  border-radius: 16px;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+}
+
+.tab {
+  border: 0;
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+}
+
+.tab.active {
+  background: var(--accent);
+  font-weight: 700;
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+.card {
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.8rem;
+}
+
+.form-grid,
+.filters {
+  display: grid;
+  gap: 0.8rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.92rem;
+  gap: 0.35rem;
+  color: var(--muted);
+}
+
+input,
+select {
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 0.6rem;
+}
+
+input::placeholder {
+  color: #ffd0dd;
+}
+
+option {
+  color: #2b0a14;
+}
+
+.btn {
+  border: 0;
+  border-radius: 10px;
+  padding: 0.6rem 0.9rem;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.file-input-btn input {
+  display: none;
+}
+
+.actions {
+  margin-top: 0.8rem;
+  display: flex;
+  gap: 0.6rem;
+}
+
+.list {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.item {
+  border-radius: 12px;
+  padding: 0.85rem;
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.item-title {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.item-meta {
+  margin: 0.3rem 0;
+  color: #ffe3ea;
+  font-size: 0.92rem;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 0.6rem;
+  align-items: center;
+}
+
+.tag {
+  border-radius: 999px;
+  background: rgba(230, 31, 82, 0.24);
+  padding: 0.25rem 0.65rem;
+  font-size: 0.8rem;
+}
+
+.icon-btn {
+  border: 0;
+  background: transparent;
+  color: var(--danger);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.checkbox-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#flowCanvas {
+  width: 100%;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 0.55rem;
+  text-align: left;
+}
+
+.empty {
+  opacity: 0.8;
+  font-style: italic;
+}

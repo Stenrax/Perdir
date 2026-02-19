@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Suivi des immersions</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg-overlay"></div>
+    <main class="app-shell">
+      <header class="app-header glass">
+        <h1>Suivi des immersions & réaffectations</h1>
+        <div class="header-actions">
+          <button id="exportJsonBtn" class="btn btn-secondary">Exporter JSON</button>
+          <label class="btn btn-secondary file-input-btn">
+            Importer JSON
+            <input id="importJsonInput" type="file" accept="application/json" />
+          </label>
+        </div>
+      </header>
+
+      <nav class="tabs glass" role="tablist" aria-label="Navigation principale">
+        <button class="tab active" data-tab="creation">Créer une immersion</button>
+        <button class="tab" data-tab="immersions">Suivi des immersions</button>
+        <button class="tab" data-tab="reaffectation">Demande de réaffectation</button>
+        <button class="tab" data-tab="dashboard">Tableau de bord</button>
+      </nav>
+
+      <section id="creation" class="tab-panel active">
+        <div class="grid-2">
+          <article class="glass card">
+            <h2>1) Élève</h2>
+            <form id="studentForm" class="form-grid">
+              <label>
+                Établissement d'origine
+                <input id="origineEtablissement" required type="text" />
+              </label>
+              <label>
+                Nom
+                <input id="nom" required type="text" />
+              </label>
+              <label>
+                Prénom
+                <input id="prenom" required type="text" />
+              </label>
+              <label>
+                Classe d'origine
+                <input id="classe" required type="text" placeholder="Saisie libre" />
+              </label>
+            </form>
+          </article>
+
+          <article class="glass card">
+            <h2>2) Immersion</h2>
+            <form id="immersionForm" class="form-grid">
+              <label>
+                Établissement d'accueil
+                <input id="accueilEtablissement" required type="text" />
+              </label>
+              <label>
+                Cursus demandé
+                <input id="cursusDemande" required type="text" placeholder="Saisie libre" />
+              </label>
+              <label>
+                Date de début d'immersion
+                <input id="dateDebut" required type="date" />
+              </label>
+              <label>
+                Date de fin d'immersion
+                <input id="dateFin" required type="date" />
+              </label>
+            </form>
+            <div class="actions">
+              <button id="createImmersionBtn" class="btn btn-primary">Valider l'immersion</button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="immersions" class="tab-panel">
+        <article class="glass card">
+          <h2>Liste des immersions</h2>
+          <div class="filters grid-4">
+            <label>
+              Établissement d'origine
+              <input id="filterOrigine" type="text" placeholder="Filtrer" />
+            </label>
+            <label>
+              Classe d'origine
+              <input id="filterClasse" type="text" placeholder="Filtrer" />
+            </label>
+            <label>
+              Établissement d'accueil
+              <input id="filterAccueil" type="text" placeholder="Filtrer" />
+            </label>
+            <label>
+              Cursus demandé
+              <input id="filterCursus" type="text" placeholder="Filtrer" />
+            </label>
+          </div>
+          <div class="actions">
+            <button class="btn btn-secondary" disabled title="Fonction à venir">Exporter en PDF</button>
+          </div>
+          <div id="immersionsList" class="list"></div>
+        </article>
+      </section>
+
+      <section id="reaffectation" class="tab-panel">
+        <article class="glass card">
+          <h2>Demandes de réaffectation (immersions passées)</h2>
+          <label class="checkbox-row">
+            <input id="hideProcessedReaffectation" type="checkbox" />
+            Ne pas faire apparaitre les réaffectations traitées
+          </label>
+          <div class="actions">
+            <button class="btn btn-secondary" disabled title="Fonction à venir">Exporter en PDF</button>
+          </div>
+          <div id="reaffectationList" class="list"></div>
+        </article>
+      </section>
+
+      <section id="dashboard" class="tab-panel">
+        <div class="grid-2">
+          <article class="glass card">
+            <h2>Diagramme de flux</h2>
+            <canvas id="flowCanvas" width="640" height="360" aria-label="Flux entre établissements"></canvas>
+          </article>
+          <article class="glass card">
+            <h2>Statistiques</h2>
+            <div id="statsTableContainer"></div>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
