@@ -236,10 +236,29 @@ option {
   gap: 0.5rem;
 }
 
-#flowCanvas {
-  width: 100%;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.08);
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.8rem;
+}
+
+.kpi-card {
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  padding: 0.8rem;
+}
+
+.kpi-card p {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+
+.kpi-card strong {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 1.5rem;
 }
 
 table {
@@ -257,4 +276,32 @@ td {
 .empty {
   opacity: 0.8;
   font-style: italic;
+}
+
+.toast-container {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 9;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.toast {
+  min-width: 260px;
+  max-width: 360px;
+  background: rgba(66, 14, 27, 0.92);
+  border: 1px solid rgba(230, 31, 82, 0.6);
+  color: #fff;
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: all 0.25s ease;
+}
+
+.toast.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
